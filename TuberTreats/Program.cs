@@ -1,3 +1,164 @@
+using TuberTreats.Models;
+
+List<TuberDriver> tuberDrivers = new List<TuberDriver>()
+{
+    new TuberDriver(){
+        Id = 1,
+        Name = "Aaron 'Jaws' Homoki",
+        TuberDeliveries = new List<TuberOrder>(),
+    },
+    new TuberDriver(){
+        Id = 2,
+        Name = "Bam Margera",
+        TuberDeliveries = new List<TuberOrder>(),
+    },
+    new TuberDriver(){
+        Id = 3,
+        Name = "Andy Anderson",
+        TuberDeliveries = new List<TuberOrder>(),
+    },
+};
+
+List<Customer> customers = new List<Customer>()
+{
+    new Customer(){
+       Id = 1,
+       Name = "Tony Hawk",
+       Address = "900 Indy Lane",
+       TuberOrders = new List<TuberOrder>()
+    },
+    new Customer(){
+       Id = 2,
+       Name = "Rodney Mullen",
+       Address = "360 Flip Road",
+       TuberOrders = new List<TuberOrder>()
+    },
+    new Customer(){
+       Id = 3,
+       Name = "Nyjah Houston",
+       Address = "17 SLS Champion Drive",
+       TuberOrders = new List<TuberOrder>()
+    },
+    new Customer(){
+       Id = 4,
+       Name = "Jamie Foy",
+       Address = "306 K-Grind Avenue",
+       TuberOrders = new List<TuberOrder>()
+    },
+    new Customer(){
+       Id = 5,
+       Name = "Yuto Horigome",
+       Address = "270 Nollie Back-Lip Circle",
+       TuberOrders = new List<TuberOrder>()
+    },
+};
+
+List<Topping> toppings = new List<Topping>()
+{
+    new Topping(){
+        Id = 1,
+        Name = "Cheese",
+    },
+    new Topping(){
+        Id = 2,
+        Name = "Bacon",
+    },
+    new Topping(){
+        Id = 3,
+        Name = "Sour Cream",
+    },
+    new Topping(){
+        Id = 4,
+        Name = "Queso",
+    },
+    new Topping(){
+        Id = 5,
+        Name = "Roast Beef",
+    },
+};
+
+List<TuberOrder> tuberOrders = new List<TuberOrder>()
+{
+    new TuberOrder(){
+        Id = 1,
+        OrderPlacedOnDate = new DateTime(2025, 8, 18),
+        CustomerId = 1,
+        TuberDriverId = 1,
+        DeliveredOnDate = new DateTime(2025, 8, 18),
+        Toppings = new List<Topping>(),
+    },
+    new TuberOrder(){
+        Id = 2,
+        OrderPlacedOnDate = DateTime.Now,
+        CustomerId = 5,
+        TuberDriverId = 3,
+        DeliveredOnDate = null,
+        Toppings = new List<Topping>(),
+    },
+    new TuberOrder(){
+        Id = 3,
+        OrderPlacedOnDate = DateTime.Now,
+        CustomerId = 3,
+        TuberDriverId = null,
+        DeliveredOnDate = null,
+        Toppings = new List<Topping>(),
+    },
+};
+
+List<TuberTopping> tuberToppings = new List<TuberTopping>()
+{
+    new TuberTopping(){
+        Id = 1,
+        TuberOrderId = 1,
+        ToppingId = 1,
+    },
+    new TuberTopping(){
+        Id = 2,
+        TuberOrderId = 1,
+        ToppingId = 2,
+    },
+    new TuberTopping(){
+        Id = 3,
+        TuberOrderId = 1,
+        ToppingId = 3,
+    },
+    new TuberTopping(){
+        Id = 4,
+        TuberOrderId = 2,
+        ToppingId = 1,
+    },
+    new TuberTopping(){
+        Id = 5,
+        TuberOrderId = 2,
+        ToppingId = 2,
+    },
+    new TuberTopping(){
+        Id = 6,
+        TuberOrderId = 2,
+        ToppingId = 3,
+    },
+    new TuberTopping(){
+        Id = 7,
+        TuberOrderId = 2,
+        ToppingId = 4,
+    },
+    new TuberTopping(){
+        Id = 8,
+        TuberOrderId = 3,
+        ToppingId = 5,
+    },
+    new TuberTopping(){
+        Id = 9,
+        TuberOrderId = 3,
+        ToppingId = 1,
+    },
+    new TuberTopping(){
+        Id = 10,
+        TuberOrderId = 3,
+        ToppingId = 2,
+    },
+};
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -20,7 +181,35 @@ app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
-//add endpoints here
+/*          ORDERS              */
+app.MapGet("/tuberorders", () =>
+{
+    return tuberOrders;
+});
+
+app.MapGet("/tuberorders/{id}", (int id) =>
+{
+    TuberOrder tuberOrder = tuberOrders.FirstOrDefault(to => to.Id == id);
+
+    if (tuberOrder == null)
+    {
+        return Results.NotFound();
+    }
+
+    Customer customer = customers.FirstOrDefault(c => c.Id == tuberOrder.CustomerId);
+    TuberDriver tuberDriver = tuberDrivers.FirstOrDefault(td => td.Id == tuberOrder.TuberDriverId);
+
+    var orderToppings = tuberToppings.Where(tt => tt.TuberOrderId == tuberOrder.Id);
+    List<Topping> customToppings = orderToppings
+        .Select(ot => toppings.FirstOrDefault(t => t.Id == ot.ToppingId))
+        .ToList();
+
+    tuberOrder.Customer = customer;
+    tuberOrder.TuberDriver = tuberDriver;
+    tuberOrder.Toppings = customToppings;
+
+    return Results.Ok(tuberOrder);   
+});
 
 app.Run();
 //don't touch or move this!
