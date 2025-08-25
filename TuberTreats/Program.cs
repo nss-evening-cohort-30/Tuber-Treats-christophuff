@@ -292,7 +292,27 @@ app.MapGet("/tuberdrivers/{id}", (int id) =>
     if (driver == null) return Results.NotFound();
 
     // Include deliveries for this driver
-    driver.TuberDeliveries = tuberOrders.Where(o => o.TuberDriverId == driver.Id).ToList();
+    driver.TuberDeliveries = tuberOrders
+        .Where(o => o.TuberDriverId == driver.Id)
+        .Select(order =>
+        {
+            // populate customer details
+            order.Customer = customers.FirstOrDefault(c => c.Id == order.CustomerId);
+
+            var orderToppings = tuberToppings.Where(tt => tt.TuberOrderId == order.Id).ToList();
+
+            order.Toppings = orderToppings
+                .Select(ot => {
+                    var topping = toppings.FirstOrDefault(t => t.Id == ot.ToppingId);
+                    return topping;
+                })
+                .Where(t => t != null)
+                .ToList();
+
+            return order;
+        })
+        .ToList();
+
     return Results.Ok(driver);
 });
 
